@@ -68,6 +68,7 @@ create table post_log (
 
 delimiter //
 
+-- Bài 1: Đăng ký thành viên
 create procedure sp_register_user(
     p_username varchar(50),
     p_password varchar(255),
@@ -84,12 +85,12 @@ begin
 
         if exists (select 1 from users where username = p_username) then
             signal sqlstate '45000'
-            set message_text = 'username da ton tai';
+            set message_text = 'Username đã tồn tại';
         end if;
 
         if exists (select 1 from users where email = p_email) then
             signal sqlstate '45000'
-            set message_text = 'email da ton tai';
+            set message_text = 'Email đã tồn tại';
         end if;
 
         insert into users(username, password, email)
@@ -107,11 +108,12 @@ after insert on users
 for each row
 begin
     insert into user_log(user_id, action)
-    values (new.user_id, 'dang ky tai khoan');
+    values (new.user_id, 'Đăng ký tài khoản');
 end //
 
 delimiter ;
 
+-- Bài 2: Đăng bài viết
 delimiter //
 
 create procedure sp_create_post(
@@ -121,7 +123,7 @@ create procedure sp_create_post(
 begin
     if trim(p_content) = '' then
         signal sqlstate '45000'
-        set message_text = 'noi dung bai viet khong hop le';
+        set message_text = 'Nội dung bài viết không hợp lệ';
     end if;
 
     insert into posts(user_id, content)
@@ -137,11 +139,12 @@ after insert on posts
 for each row
 begin
     insert into post_log(user_id, post_id, action)
-    values (new.user_id, new.post_id, 'tao bai viet');
+    values (new.user_id, new.post_id, 'Tạo bài viết');
 end //
 
 delimiter ;
 
+-- Like bài viết
 delimiter //
 
 create procedure sp_like_post(
@@ -193,6 +196,7 @@ end //
 
 delimiter ;
 
+-- Bài 4: Gửi lời mời kết bạn
 delimiter //
 
 create procedure sp_send_friend_request(
@@ -211,6 +215,7 @@ end //
 
 delimiter ;
 
+-- Bài 5: Chấp nhận lời mời kết bạn
 delimiter //
 
 create procedure sp_accept_friend_request(
@@ -234,6 +239,7 @@ end //
 
 delimiter ;
 
+-- Bài 6: Quản lý mối quan hệ bạn bè
 delimiter //
 
 create procedure sp_unfriend(
@@ -252,6 +258,7 @@ end //
 
 delimiter ;
 
+-- Bài 7: Xóa bài viết
 delimiter //
 
 create procedure sp_delete_post(
@@ -270,13 +277,13 @@ begin
         if owner_id is null then
             rollback;
             signal sqlstate '45000'
-            set message_text = 'bai viet khong ton tai';
+            set message_text = 'Bài viết không tồn tại';
         end if;
 
         if owner_id <> p_user_id then
             rollback;
             signal sqlstate '45000'
-            set message_text = 'khong co quyen xoa bai viet';
+            set message_text = 'Không có quyền xóa bài viết';
         end if;
 
         delete from likes where post_id = p_post_id;
@@ -288,6 +295,7 @@ end //
 
 delimiter ;
 
+-- Bài 8: Xóa tài khoản người dùng
 delimiter //
 
 create procedure sp_delete_user(
@@ -306,6 +314,7 @@ begin
 end //
 
 delimiter ;\
+-- DEMO
 -- THêm user
 call sp_register_user('an',  '123456', 'an@gmail.com');
 call sp_register_user('binh','123456', 'binh@gmail.com');
